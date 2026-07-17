@@ -1,84 +1,87 @@
-from functools import wraps
+import os
 from datetime import timedelta
-from flask import Flask, request, jsonify
+from functools import wraps
+
+import bcrypt
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
-    JWTManager, create_access_token, jwt_required, get_jwt
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    jwt_required,
+    verify_jwt_in_request,
 )
 
-app = Flask(__name__)
+from services.user_service import user_service
 
-# Configure JWT
-app.config['JWT_SECRET_KEY'] = 'your-super-secret-key-change-this'  # Use a secure env variable in production!
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes = 10)  # Tokens expire in 10 minutes
-jwt = JWTManager(app)
-
-# Mock database mapping users to their password and role
-USERS = {
-    "alice": {"password": "userpass", "role": "User"},
-    "bob": {"password": "adminpass", "role": "Admin"}
-}
+jwt_bp = Blueprint("jwt_bp", __name__)
+jwt = JWTManager()
 
 
-# --- CUSTOM DECORATOR FOR ROLE VERIFICATION ---
+def init_jwt(app):
+    app.config.setdefault("JWT_SECRET_KEY", os.getenv("JWT_SECRET_KEY", "your-super-secret-key-change-this"))
+    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=30))
+    jwt.init_app(app)
+    app.register_blueprint(jwt_bp)
+
+
 def admin_required():
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):
-            # 1. Verify a valid JWT is in the request
-            # (equivalent to putting @jwt_required() on the endpoint)
-            from flask_jwt_extended import verify_jwt_in_request
             verify_jwt_in_request()
-            
-            # 2. Extract the claims and check the role
             claims = get_jwt()
-            if claims.get("role") != "Admin":
+            if claims.get("role") != "admin":
                 return jsonify({"error": "Admin privilege required"}), 403
-                
             return fn(*args, **kwargs)
+
         return decorator
+
     return wrapper
 
 
-# --- ENDPOINTS ---
-
-@app.route('/login', methods=['POST'])
+@jwt_bp.route("/auth/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    data = request.get_json(silent=True) or {}
+    username = data.get("username")
+    password = data.get("password")
 
-    user = USERS.get(username)
-    # NOTE: In a real app, verify the password using pbkdf2/bcrypt hashes!
-    if not user or user['password'] != password:
+    if not username or not password:
+        return jsonify({"error": "username and password are required"}), 400
+
+    user = user_service.fetch_by_username(username)
+    if not user or not getattr(user, "password", None):
         return jsonify({"error": "Bad username or password"}), 401
 
-    # Add custom "role" claim to the access token
+    stored_password = user.password
+    provided_password = password.encode("utf-8")
+    if isinstance(stored_password, str) and stored_password.startswith("$2"):
+        if not bcrypt.checkpw(provided_password, stored_password.encode("utf-8")):
+            return jsonify({"error": "Bad username or password"}), 401
+    elif stored_password != password:
+        return jsonify({"error": "Bad username or password"}), 401
+
     access_token = create_access_token(
-        identity=username, 
-        additional_claims={"role": user['role']}
+        identity=username,
+        additional_claims={"role": getattr(user, "role", "customer")},
     )
     return jsonify(access_token=access_token), 200
 
 
-# Standard user endpoint (Accessible by both User and Admin)
-@app.route('/dashboard', methods=['GET'])
+@jwt_bp.route("/dashboard", methods=["GET"])
 @jwt_required()
 def user_dashboard():
     claims = get_jwt()
     return jsonify({
-        "message": f"Welcome to the dashboard!",
-        "your_role": claims.get("role")
+        "message": "Welcome to the dashboard!",
+        "your_role": claims.get("role"),
     }), 200
 
-# Secure admin-only endpoint
-@app.route('/admin', methods=['GET'])
+
+@jwt_bp.route("/admin", methods=["GET"])
 @admin_required()
 def admin_dashboard():
     return jsonify({
         "status": "success",
-        "message": "Welcome, Administrator. You have full access."
+        "message": "Welcome, Administrator. You have full access.",
     }), 200
-
-
-if __name__ == '__main__':
-    app.run(debug=True)

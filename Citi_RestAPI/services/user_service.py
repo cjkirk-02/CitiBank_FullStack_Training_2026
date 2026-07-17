@@ -10,13 +10,16 @@ class UserService:
         users = self.repo.get_all()
         return [user.to_dict() for user in users]
 
+    def fetch_by_username(self, username: str):
+        if not username:
+            return None
+        return self.repo.get_by_username(username)
+
     def create_user(self, name: str, email: str, username: str, password: str, role: str = "customer"):
-        # Clean input before saving
         clean_email = email.strip().lower()
         clean_username = username.strip()
         clean_role = (role or "customer").strip().lower() or "customer"
 
-        # Instantiate a new User model (ID will be set by repo)
         new_user_model = User(
             user_id=None,
             name=name,

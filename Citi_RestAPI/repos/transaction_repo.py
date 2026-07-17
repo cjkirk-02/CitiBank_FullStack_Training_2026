@@ -1,14 +1,11 @@
 from pymongo import MongoClient
+from db import transactions_db
 from bson import ObjectId
 from models.transaction_model import Transaction
 
 class TransactionRepository:
     def __init__(self):
-        # Using the same MongoDB connection setup
-        self.uri = "mongodb+srv://kirkc0202_db_user:QtC9EuM7uQ7jefB8@cluster0.wlyybit.mongodb.net/?appName=Cluster0"
-        self.client = MongoClient(self.uri)
-        self.db = self.client["TransactionDB"]
-        self.collection = self.db["transactions"]
+        self.collection = transactions_db["transactions"]
 
     def save(self, transaction: Transaction):
         transaction_document = {

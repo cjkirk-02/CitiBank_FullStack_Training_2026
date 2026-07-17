@@ -1,10 +1,13 @@
 from flask import Flask
-from flask_cors import CORS  # <-- Import CORS
+from flask_cors import CORS
 from controllers.user_controller import user_bp
 from controllers.account_controller import account_bp
+from jwtTest import init_jwt
 
 app = Flask(__name__)
-CORS(app)  # <-- This enables CORS for all routes across your entire API!
+CORS(app)
+
+init_jwt(app)
 
 app.register_blueprint(user_bp)
 app.register_blueprint(account_bp)
