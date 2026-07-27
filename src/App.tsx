@@ -1,6 +1,13 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Header from './components/Header/Header'
 import ServicesPage from './pages/ServicesPage'
+import LoginPage from './pages/Login'
+import SignupPage from './pages/Signup'
+import AboutPage from './pages/About'
+import AccountsPage from './pages/Accounts'
+import SummaryPage from './pages/Summary'
+import { fetchUsers, getRoleFromToken, getUsernameFromToken } from './services/serviceApi'
 import './App.css'
 
 const transactions = [
@@ -14,24 +21,32 @@ const goals = [
   { id: 2, title: 'Vacation', value: '$4,800', target: '$8,000', progress: '60%' },
 ]
 
-function HomePage() {
+type HomePageProps = {
+  role: string | null
+}
+
+function HomePage({ role }: HomePageProps) {
+  const isAdmin = role === 'admin'
+
   return (
     <div className="bank-app">
       <main className="dashboard">
         <section className="hero-card">
           <div className="hero-copy">
-            <p className="eyebrow">Available balance</p>
-            <h2>$24,580.90</h2>
+            <p className="eyebrow">{isAdmin ? 'Admin dashboard' : 'Available balance'}</p>
+            <h2>{isAdmin ? 'Admin Control Center' : '$24,580.90'}</h2>
             <p className="hero-text">
-              Good morning, Olivia. You saved 18% more this month than last month.
+              {isAdmin
+                ? 'You have elevated privileges for secure account oversight and banking operations.'
+                : 'Good morning, Olivia. You saved 18% more this month than last month.'}
             </p>
 
             <div className="action-row">
               <button type="button" className="primary-btn">
-                View statements
+                {isAdmin ? 'Manage users' : 'View statements'}
               </button>
               <button type="button" className="primary-btn ghost">
-                Manage cards
+                {isAdmin ? 'Audit logs' : 'Manage cards'}
               </button>
             </div>
           </div>
@@ -40,7 +55,7 @@ function HomePage() {
             <div className="chip" />
             <p className="card-number">•••• 4821</p>
             <div className="card-meta">
-              <span>Olivia Chen</span>
+              <span>{isAdmin ? 'Admin Access' : 'Olivia Chen'}</span>
               <span>08/28</span>
             </div>
           </div>
@@ -122,12 +137,110 @@ function HomePage() {
 }
 
 function App() {
+  const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('frontbank-token'))
+  const [role, setRole] = useState<string | null>(() => {
+    const savedToken = localStorage.getItem('frontbank-token')
+    return savedToken ? getRoleFromToken(savedToken) : null
+  })
+
+  useEffect(() => {
+    if (!authToken) {
+      setRole(null)
+      localStorage.removeItem('frontbank-role')
+      return
+    }
+
+    const currentRole = getRoleFromToken(authToken)
+    setRole(currentRole)
+    if (currentRole) {
+      localStorage.setItem('frontbank-role', currentRole)
+    }
+  }, [authToken])
+
+  useEffect(() => {
+    if (!authToken) {
+      return
+    }
+
+    const savedUserId = localStorage.getItem('frontbank-user-id')
+    if (savedUserId) {
+      return
+    }
+
+    const username = getUsernameFromToken(authToken)
+    if (!username) {
+      return
+    }
+
+    void fetchUsers().then((users) => {
+      const currentUser = users.find((user: { username?: string; id?: string }) => user.username === username)
+      if (currentUser?.id) {
+        localStorage.setItem('frontbank-user-id', currentUser.id)
+        console.log('User ID saved to localStorage:', currentUser.id)
+      }
+    }).catch(() => {
+      localStorage.removeItem('frontbank-user-id')
+      console.error('Failed to fetch users or find the current user.')
+    })
+  }, [authToken])
+
+  const handleLogin = async (token: string) => {
+    localStorage.setItem('frontbank-token', token)
+    setAuthToken(token)
+
+    const username = getUsernameFromToken(token)
+    if (!username) {
+      return
+    }
+
+    try {
+      const users = await fetchUsers()
+      const currentUser = users.find((user: { username?: string; id?: string }) => user.username === username)
+      if (currentUser?.id) {
+        localStorage.setItem('frontbank-user-id', currentUser.id)
+      }
+    } catch {
+      localStorage.removeItem('frontbank-user-id')
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('frontbank-token')
+    localStorage.removeItem('frontbank-role')
+    localStorage.removeItem('frontbank-user-id')
+    setAuthToken(null)
+    setRole(null)
+  }
+
   return (
     <BrowserRouter>
-      <Header />
+      <Header isLoggedIn={Boolean(authToken)} isAdmin={role === 'admin'} onLogout={handleLogout} />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage role={role} />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/accounts" element={<AccountsPage />} />
+        <Route path="/summary/:accountId" element={<SummaryPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route
+          path="/login"
+          element={
+            authToken ? (
+              <Navigate to="/" replace />
+            ) : (
+              <LoginPage isAuthenticated={Boolean(authToken)} onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            authToken ? (
+              <Navigate to="/" replace />
+            ) : (
+              <SignupPage isAuthenticated={Boolean(authToken)} onLogin={handleLogin} />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

@@ -11,6 +11,21 @@
   backdrop-filter: blur(10px);
 }
 
+.app-header.admin-mode {
+  border-color: #15213c;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.app-header.admin-mode .brand-mark,
+.app-header.admin-mode h1 {
+  color: #3f9c8e;
+  background: #120f28;
+}
+
+.app-header.admin-mode .brand-mark {
+  color: #ffffff;
+}
+
 .brand-block {
   display: flex;
   align-items: center;
@@ -65,12 +80,17 @@
 }
 
 .primary-btn,
-.ghost-btn {
+.ghost-btn,
+.login-link {
   border: none;
   border-radius: 999px;
   padding: 10px 16px;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .primary-btn {

@@ -62,6 +62,38 @@
   cursor: pointer;
 }
 
+.login-card {
+  align-items: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(380px, 100%);
+  padding: 12px 0;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.login-form input {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.35);
+  color: #f8fafc;
+}
+
+.login-form input::placeholder {
+  color: #94a3b8;
+}
+
 .primary-btn {
   background: linear-gradient(135deg, #00bbff, #1d4ed8);
   color: white;
@@ -271,6 +303,53 @@
 .status-error {
   color: #dc2626;
   font-weight: 600;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 160px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  padding: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.account-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.savings-card {
+  background: #ffffff;
+  color: #06b6d4;
+}
+
+.checking-card {
+  background: #06b6d4;
+  color: #ffffff;
+}
+
+.account-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.account-balance {
+  font-size: 1.6rem;
+  font-weight: 800;
 }
 
 .data-table {

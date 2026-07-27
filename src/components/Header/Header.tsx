@@ -1,16 +1,25 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Header.css'
 
-const navItems = [
-  { label: 'Home', path: '/' },
-  { label: 'About', path: '#' },
-  { label: 'Contact', path: '#' },
-  { label: 'Services', path: '/services' },
-]
+type HeaderProps = {
+  isLoggedIn: boolean
+  isAdmin: boolean
+  onLogout: () => void
+}
 
-function Header() {
+function Header({ isLoggedIn, isAdmin, onLogout }: HeaderProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isLoginPage = location.pathname === '/login'
+  const servicesLabel = isAdmin ? 'Services' : 'Accounts'
+
+  const handleLogout = () => {
+    onLogout()
+    navigate('/')
+  }
+
   return (
-    <header className="app-header">
+    <header className={`app-header ${isAdmin ? 'admin-mode' : ''}`}>
       <div className="brand-block">
         <div className="brand-mark">FB</div>
         <div>
@@ -20,20 +29,39 @@ function Header() {
       </div>
 
       <nav className="nav-links" aria-label="Primary navigation">
-        {navItems.map((item) => (
-          <Link key={item.label} to={item.path} className="nav-link">
-            {item.label}
+        <Link to="/" className="nav-link">
+          Home
+        </Link>
+        <Link to="/about" className="nav-link">
+          About
+        </Link>
+        <Link to="#" className="nav-link">
+          Contact
+        </Link>
+        {(isAdmin || (!isAdmin && isLoggedIn)) && (
+          <Link to={isAdmin ? "/services" : "/accounts"} className="nav-link">
+            {servicesLabel}
           </Link>
-        ))}
+        )}
       </nav>
 
       <div className="topbar-actions">
-        <button type="button" className="ghost-btn">
-          Transfer
-        </button>
-        <button type="button" className="primary-btn">
-          Account
-        </button>
+        {!isLoggedIn ? (
+          <>
+            <Link to="/login" className="primary-btn login-link">
+              Login
+            </Link>
+            {isLoginPage && (
+              <Link to="/signup" className="ghost-btn">
+                Sign up
+              </Link>
+            )}
+          </>
+        ) : (
+          <button type="button" className="ghost-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        )}
       </div>
     </header>
   )
