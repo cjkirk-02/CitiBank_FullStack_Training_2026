@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 from functools import wraps
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import bcrypt
 from flask import Blueprint, jsonify, request
@@ -19,8 +22,8 @@ jwt = JWTManager()
 
 
 def init_jwt(app):
-    app.config.setdefault("JWT_SECRET_KEY", os.getenv("JWT_SECRET_KEY", "your-super-secret-key-change-this"))
-    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=10))
+    app.config.setdefault("JWT_SECRET_KEY", os.getenv("JWT_SECRET_KEY"))
+    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=60))
     jwt.init_app(app)
     app.register_blueprint(jwt_bp)
 

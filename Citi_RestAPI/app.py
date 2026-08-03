@@ -5,7 +5,7 @@ from controllers.account_controller import account_bp
 from jwtTest import init_jwt
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 init_jwt(app)
 
