@@ -1,0 +1,26 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - REST-API   # <-- Matches your exact branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: REST-API   # <-- Matches your exact branch name
+
+      - name: SSH and Deploy Code
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/CitiBank_FullStack_Training_2026
+            ./deploy.sh
