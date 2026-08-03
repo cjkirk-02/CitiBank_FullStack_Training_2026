@@ -20,7 +20,7 @@ jwt = JWTManager()
 
 def init_jwt(app):
     app.config.setdefault("JWT_SECRET_KEY", os.getenv("JWT_SECRET_KEY", "your-super-secret-key-change-this"))
-    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=30))
+    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=10))
     jwt.init_app(app)
     app.register_blueprint(jwt_bp)
 

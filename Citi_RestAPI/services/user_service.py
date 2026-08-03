@@ -32,6 +32,39 @@ class UserService:
         saved_user = self.repo.save(new_user_model)
         return saved_user.to_dict()
 
+    def update_user(
+        self,
+        user_id: str,
+        name: str = None,
+        email: str = None,
+        username: str = None,
+        password: str = None,
+        role: str = None,
+    ):
+        if not user_id:
+            return None
+
+        updates = {}
+
+        if name is not None:
+            updates["name"] = name
+        if email is not None:
+            updates["email"] = email.strip()
+        if username is not None:
+            updates["username"] = username.strip()
+        if password is not None:
+            updates["password"] = password
+        if role is not None:
+            updates["role"] = (role or "customer").strip().lower() or "customer"
+
+        updated_user = self.repo.update_by_id(user_id, updates)
+        return updated_user.to_dict() if updated_user else None
+
+    def delete_user(self, user_id: str):
+        if not user_id:
+            return False
+        return self.repo.delete_by_id(user_id)
+
 
 # Instantiate the service, injecting our single repository instance
 user_service = UserService(user_repository)

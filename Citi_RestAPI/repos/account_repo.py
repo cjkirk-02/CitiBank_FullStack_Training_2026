@@ -36,5 +36,12 @@ class AccountRepository:
             {"$set": {"balance": new_balance}}
         )
 
+    def delete_by_id(self, account_id: str):
+        try:
+            result = self.collection.delete_one({"_id": ObjectId(account_id)})
+        except Exception:
+            raise ValueError("Invalid account_id format.")
+        return result.deleted_count > 0
+
 # Instantiate single repository instance
 account_repository = AccountRepository()

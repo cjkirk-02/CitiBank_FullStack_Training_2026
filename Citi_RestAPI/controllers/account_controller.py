@@ -73,3 +73,15 @@ def get_transaction_history(account_id):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred"}), 500
+
+@account_bp.route('/accounts/<account_id>', methods=['DELETE'])
+def delete_account(account_id):
+    try:
+        deleted = account_service.delete_account(account_id)
+        if not deleted:
+            return jsonify({"error": "Account not found"}), 404
+        return jsonify({"message": "Account deleted successfully"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred"}), 500

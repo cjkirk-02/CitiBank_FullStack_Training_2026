@@ -104,5 +104,15 @@ class AccountService:
         transactions = self.transaction_repo.find_by_account_id(account_id)
         return [tx.to_dict() for tx in transactions]
 
+    def delete_account(self, account_id: str):
+        if not account_id:
+            return False
+
+        account = self.account_repo.find_by_id(account_id)
+        if not account:
+            return False
+
+        return self.account_repo.delete_by_id(account_id)
+
 # Instantiate the service with all three required repositories injected
 account_service = AccountService(account_repository, user_repository, transaction_repository)
