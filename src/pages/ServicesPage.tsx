@@ -122,7 +122,7 @@ function ServicesPage() {
     if (nextUsername.trim() !== user.username) {
       payload.username = nextUsername.trim()
     }
-    if (nextEmail.trim().toLowerCase() !== user.email.toLowerCase()) {
+    if (nextEmail.trim() !== user.email) {
       payload.email = nextEmail.trim()
     }
 

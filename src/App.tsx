@@ -178,7 +178,6 @@ function App() {
       const currentUser = users.find((user: { username?: string; id?: string }) => user.username === username)
       if (currentUser?.id) {
         localStorage.setItem('frontbank-user-id', currentUser.id)
-        console.log('User ID saved to localStorage:', currentUser.id)
       }
     }).catch(() => {
       localStorage.removeItem('frontbank-user-id')
