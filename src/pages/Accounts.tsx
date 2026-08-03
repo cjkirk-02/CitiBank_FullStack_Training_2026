@@ -48,13 +48,18 @@ function AccountsPage() {
   return (
     <div className="bank-app">
       <main className="dashboard">
-        <section className="hero-card">
+        <section className="hero-card hero-card-with-action">
           <div className="hero-copy">
             <p className="eyebrow">Accounts</p>
             <h2>My Accounts</h2>
             <p className="hero-text">
               View and manage your bank accounts.
             </p>
+          </div>
+          <div className="hero-actions">
+            <button type="button" className="primary-btn" onClick={() => navigate('/transfer')}>
+              Make a Transfer
+            </button>
           </div>
         </section>
 

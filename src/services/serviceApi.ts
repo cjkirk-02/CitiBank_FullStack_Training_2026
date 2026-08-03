@@ -10,6 +10,44 @@ export async function fetchUsers() {
   return response.json()
 }
 
+export async function updateUser(
+  userId: string,
+  payload: Partial<{ name: string; email: string; username: string; password: string; role: string }>,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({ error: 'Failed to update user' }))
+    throw new Error(errorPayload.error || 'Failed to update user')
+  }
+
+  return response.json() as Promise<{ id: string; name: string; username: string; email: string; role: string; time_created: string }>
+}
+
+export async function deleteUser(userId: string, token: string) {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({ error: 'Failed to delete user' }))
+    throw new Error(errorPayload.error || 'Failed to delete user')
+  }
+
+  return response.json() as Promise<{ message: string }>
+}
+
 export async function fetchAccounts() {
   const response = await fetch(`${API_BASE_URL}/accounts`)
 
@@ -18,6 +56,45 @@ export async function fetchAccounts() {
   }
 
   return response.json()
+}
+
+export async function createAccount(userId: string, accountType: 'savings' | 'checking') {
+  const response = await fetch(`${API_BASE_URL}/accounts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      account_type: accountType,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({ error: 'Failed to create account' }))
+    throw new Error(errorPayload.error || 'Failed to create account')
+  }
+
+  return response.json() as Promise<{
+    id: string
+    user_id: string
+    account_type: string
+    balance: number
+    created_at: string
+  }>
+}
+
+export async function deleteAccount(accountId: string) {
+  const response = await fetch(`${API_BASE_URL}/accounts/${accountId}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({ error: 'Failed to delete account' }))
+    throw new Error(errorPayload.error || 'Failed to delete account')
+  }
+
+  return response.json() as Promise<{ message: string }>
 }
 
 export async function fetchAccountsByUser(userId: string, token: string) {
@@ -44,6 +121,41 @@ export async function fetchAccountTransactions(accountId: string) {
   }
 
   return response.json() as Promise<Array<{ id: string; transaction_type: string; amount: number; timestamp: string }>>
+}
+
+export async function transferBetweenAccounts(fromAccountId: string, toAccountId: string, amount: number, token: string) {
+  const withdrawResponse = await fetch(`${API_BASE_URL}/accounts/${fromAccountId}/withdraw`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ amount }),
+  })
+
+  if (!withdrawResponse.ok) {
+    const errorPayload = await withdrawResponse.json().catch(() => ({ error: 'Transfer failed during withdrawal' }))
+    throw new Error(errorPayload.error || 'Transfer failed during withdrawal')
+  }
+
+  const depositResponse = await fetch(`${API_BASE_URL}/accounts/${toAccountId}/deposit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ amount }),
+  })
+
+  if (!depositResponse.ok) {
+    const errorPayload = await depositResponse.json().catch(() => ({ error: 'Transfer failed during deposit' }))
+    throw new Error(errorPayload.error || 'Transfer failed during deposit')
+  }
+
+  return {
+    withdraw: await withdrawResponse.json(),
+    deposit: await depositResponse.json(),
+  }
 }
 
 export async function signUpUser(payload: {

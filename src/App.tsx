@@ -7,6 +7,8 @@ import SignupPage from './pages/Signup'
 import AboutPage from './pages/About'
 import AccountsPage from './pages/Accounts'
 import SummaryPage from './pages/Summary'
+import TransferPage from './pages/Transfer'
+import AccountCreatePage from './pages/Account_Create'
 import { fetchUsers, getRoleFromToken, getUsernameFromToken } from './services/serviceApi'
 import './App.css'
 
@@ -218,7 +220,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage role={role} />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/account-create" element={<AccountCreatePage />} />
         <Route path="/accounts" element={<AccountsPage />} />
+        <Route path="/transfer" element={<TransferPage />} />
         <Route path="/summary/:accountId" element={<SummaryPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route
