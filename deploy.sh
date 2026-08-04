@@ -10,7 +10,7 @@ git pull origin REST-API
 source /home/ec2-user/CitiBank_FullStack_Training_2026/venv/bin/activate
 
 # 4. Install requirements (If requirements.txt is in a subfolder, update path e.g. pip install -r backend/requirements.txt)
-if [ -f "requirements.txt" ]; then
+if [ -f "Citi_RestAPI/requirements.txt" ]; then
     pip install -r requirements.txt
 fi
 
