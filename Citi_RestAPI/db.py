@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import certifi
 from pymongo import MongoClient
 
 load_dotenv()
@@ -9,7 +10,7 @@ if not mongo_uri:
     raise ValueError("Missing MONGO_URI in environment variables.")
 
 # Create a single client connection pool
-client = MongoClient(mongo_uri)
+client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 
 # Route to the correct, distinct databases found in your configuration
 users_db = client["UsersDB"]
